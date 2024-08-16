@@ -508,13 +508,12 @@ class Transformer(nn.Module):
         
         return generated_text
 
-# ... existing imports ...
-
 class TransformerWithPretraineddEmbedding(Transformer):
-    def __init__(self, model_args: ModelArgs, pretrained_embedding: Optional[np.ndarray] = None):
+    def __init__(self, model_args: ModelArgs, pretrained_embedding: Optional[np.ndarray] = None, freeze_embedding: bool = True):
         super().__init__(model_args)
         
         self.embedding_projection = None
+        self.freeze_embedding = freeze_embedding
         if pretrained_embedding is not None:
             self._initialize_custom_embedding(pretrained_embedding)
 
@@ -534,10 +533,11 @@ class TransformerWithPretraineddEmbedding(Transformer):
             nn.init.orthogonal_(self.embedding_projection.weight)
             
             # Set custom embedding
-            self.tok_embeddings = nn.Embedding.from_pretrained(pretrained_embedding_tensor, freeze=False)
+            self.tok_embeddings = nn.Embedding.from_pretrained(pretrained_embedding_tensor, freeze=self.freeze_embedding)
         else:
             # If dimensions match, directly set the embedding weights
             self.tok_embeddings.weight.data.copy_(pretrained_embedding_tensor)
+            self.tok_embeddings.weight.requires_grad = not self.freeze_embedding
         
         print("Initialized embedding layer with custom weights.")
 
