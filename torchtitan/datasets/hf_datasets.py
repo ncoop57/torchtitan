@@ -31,6 +31,8 @@ _supported_datasets = {
     "c4_test": "test/assets/c4_test",
     "c4": "allenai/c4",
     "tiny_programs": "answerdotai/tiny_programs_haiku3",
+    "python_edu": "HuggingFaceTB/smollm-corpus",
+    "tiny_stories": "roneneldan/TinyStories"
 }
 
 
@@ -100,6 +102,8 @@ class HuggingFaceDataset(IterableDataset, Stateful):
             # c4 is huge, and requires both streaming and language selection
             # (we default to en)
             ds = load_dataset(dataset_path, name="en", split="train", streaming=True)
+        elif dataset_name == "python_edu":
+            ds = load_dataset(dataset_path, name="python-edu", split="train")
         else:
             ds = load_dataset(dataset_path, split="train")
 
@@ -119,7 +123,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
 
         while True:
             for sample in self._get_data_iter():
-                sample_text = sample["code"]
+                sample_text = sample["text"]
                 sample_tokens = self._tokenizer.encode(sample_text, bos=True, eos=True)
                 self._all_tokens.extend(sample_tokens)
                 self._sample_idx += 1

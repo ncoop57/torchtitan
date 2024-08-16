@@ -2,26 +2,30 @@ from torchtitan.datasets import build_tokenizer
 from torchtitan.models import model_name_to_cls, model_name_to_tokenizer, models_config
 
 import torch
-
+import numpy as np
 model_name = "llama3"
 model_flavor = "debugmodel"
-ckpt_path = "./outputs/checkpoint/final_model.pt"
-tokenizer_path = "./test/assets/test_tiktoken.model"
+
+ckpt_path = "./outputs/checkpoint_debug/final_model.pt"
+tokenizer_path = "./test/assets/tokenizer.model"
+pretrained_embedding_path = "./test/assets/llama3_8b_pretrained_embedding.npy"
 model_cls = model_name_to_cls[model_name]
 model_config = models_config[model_name][model_flavor]
 tokenizer_name = model_name_to_tokenizer[model_name]
 tokenizer = build_tokenizer(tokenizer_name, tokenizer_path)
 model_config.vocab_size = tokenizer.n_words
-model = model_cls.from_model_args(model_config)
-# model = model_cls.from_model_args(model_config)
+if model_name.endswith("_pretrained"):
+    model = model_cls.from_model_args_and_embedding(model_config, pretrained_embedding=np.load(pretrained_embedding_path))
+else:
+    model = model_cls.from_model_args(model_config)
 print(tokenizer.encode("Hello, world!", bos=True, eos=True))
 print(model)
 print(model.generate("Hello, world!", tokenizer))
 
 # load model
 state_dict = torch.load(ckpt_path)
-model.load_state_dict(state_dict['model'], strict=False)
-print(model.generate("```python\nprint(", tokenizer, top_k=1))
+model.load_state_dict(state_dict, strict=False)
+print(model.generate("Hi, my name is", tokenizer, top_k=50))
 
 # print(model.generate("```python\nprint('Hello, ", tokenizer))
 

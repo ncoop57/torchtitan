@@ -508,14 +508,14 @@ class Transformer(nn.Module):
         
         return generated_text
 
-class TransformerWithPretraineddEmbedding(Transformer):
+class TransformerWithPretrainedEmbedding(Transformer):
     def __init__(self, model_args: ModelArgs, pretrained_embedding: Optional[np.ndarray] = None, freeze_embedding: bool = True):
         super().__init__(model_args)
         
         self.embedding_projection = None
         self.freeze_embedding = freeze_embedding
         if pretrained_embedding is not None:
-            self._initialize_custom_embedding(pretrained_embedding)
+            self._initialize_pretrained_embedding(pretrained_embedding)
 
     def _initialize_pretrained_embedding(self, pretrained_embedding: np.ndarray):
         pretrained_vocab_size, pretrained_dim = pretrained_embedding.shape

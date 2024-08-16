@@ -2,7 +2,7 @@
 
 [job]
 dump_folder = "./outputs"
-description = "Llama 3 debug training"
+description = "Code Llama 3 pretrained embeddings training"
 use_for_integration_test = true
 
 [profiling]
@@ -20,9 +20,8 @@ save_tb_folder = "tb"
 
 [model]
 name = "llama3"
-flavor = "debugmodel"
+flavor = "500M"
 norm_type = "rmsnorm"  # layernorm / np_layernorm / rmsnorm / compiled_rmsnorm / fused_rmsnorm
-# test tokenizer.model, for debug purpose only
 tokenizer_path = "./test/assets/tokenizer.model"
 
 [optimizer]
@@ -46,13 +45,12 @@ enable_async_tensor_parallel = false
 
 [checkpoint]
 enable_checkpoint = true
-folder = "checkpoint_debug"
+folder = "checkpoint_500M"
 interval_type = "steps"
 interval = 100
 model_weights_only = true
 export_dtype = "bfloat16"
 async_mode = "disabled"  # ["disabled", "async", "async_with_pinned_mem"]
-
 [activation_checkpoint]
 mode = 'selective'  # ['none', 'selective', 'full']
 selective_ac_option = '2'  # 'int' = ac every positive int layer or 'op', ac based on ops policy
