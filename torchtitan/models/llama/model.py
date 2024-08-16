@@ -455,3 +455,54 @@ class Transformer(nn.Module):
 
         """
         return cls(model_args)
+
+    def generate(self, prompt: str, tokenizer, max_new_tokens: int = 20, temperature: float = 1.0, top_k: int = 50):
+        """
+        Generate text based on a given prompt using top-k sampling.
+
+        Args:
+            prompt (str): The input prompt to start generation from.
+            tokenizer (Tokenizer): The tokenizer to use for encoding and decoding.
+            max_new_tokens (int): Maximum number of new tokens to generate.
+            temperature (float): Controls randomness in sampling. Lower values make it more deterministic.
+            top_k (int): The number of highest probability vocabulary tokens to keep for top-k sampling.
+
+        Returns:
+            str: The generated text including the original prompt.
+        """
+        # Tokenize the prompt (you'll need to implement or use an appropriate tokenizer)
+        input_ids = tokenizer.encode(prompt, bos=True, eos=False)
+        
+        # Convert to tensor and move to the correct device
+        input_ids = torch.tensor(input_ids).unsqueeze(0).to(self.tok_embeddings.weight.device)
+        
+        for _ in range(max_new_tokens):
+            # Get the last token's predictions
+            with torch.no_grad():
+                outputs = self(input_ids[:, -self.model_args.max_seq_len:])
+                next_token_logits = outputs[:, -1, :]
+            
+            # Apply temperature
+            next_token_logits = next_token_logits / temperature
+            
+            # Apply top-k sampling
+            top_k_logits, top_k_indices = torch.topk(next_token_logits, top_k, dim=-1)
+            
+            # Sample from the top-k distribution
+            probs = F.softmax(top_k_logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+            
+            # Convert back to vocabulary space
+            next_token = torch.gather(top_k_indices, -1, next_token)
+            
+            # Append the new token to the sequence
+            input_ids = torch.cat([input_ids, next_token], dim=-1)
+            
+            # Check if we've generated an end-of-sequence token (you'll need to define this)
+            if next_token.item() == tokenizer.eos_id:
+                break
+        
+        # Decode the generated sequence (you'll need to implement or use an appropriate detokenizer)
+        generated_text = tokenizer.decode(input_ids[0].tolist())
+        
+        return generated_text
