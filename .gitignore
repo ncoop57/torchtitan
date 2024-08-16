@@ -10,6 +10,7 @@ dist/*
 data
 out
 wandb
+*.npy
 
 torchtitan/datasets/**/*.model
 

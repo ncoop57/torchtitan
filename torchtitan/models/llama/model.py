@@ -11,6 +11,7 @@
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -506,3 +507,54 @@ class Transformer(nn.Module):
         generated_text = tokenizer.decode(input_ids[0].tolist())
         
         return generated_text
+
+# ... existing imports ...
+
+class TransformerWithPretraineddEmbedding(Transformer):
+    def __init__(self, model_args: ModelArgs, pretrained_embedding: Optional[np.ndarray] = None):
+        super().__init__(model_args)
+        
+        self.embedding_projection = None
+        if pretrained_embedding is not None:
+            self._initialize_custom_embedding(pretrained_embedding)
+
+    def _initialize_pretrained_embedding(self, pretrained_embedding: np.ndarray):
+        pretrained_vocab_size, pretrained_dim = pretrained_embedding.shape
+        
+        if pretrained_vocab_size != self.vocab_size:
+            raise ValueError(f"Custom embedding vocabulary size {pretrained_vocab_size} "
+                             f"does not match model vocabulary size {self.vocab_size}")
+        
+        pretrained_embedding_tensor = torch.from_numpy(pretrained_embedding).float()
+        
+        if pretrained_dim != self.model_args.dim:
+            print(f"Projecting custom embedding from dimension {pretrained_dim} to {self.model_args.dim}")
+            self.embedding_projection = nn.Linear(pretrained_dim, self.model_args.dim, bias=False)
+            # Initialize the projection layer
+            nn.init.orthogonal_(self.embedding_projection.weight)
+            
+            # Set custom embedding
+            self.tok_embeddings = nn.Embedding.from_pretrained(pretrained_embedding_tensor, freeze=False)
+        else:
+            # If dimensions match, directly set the embedding weights
+            self.tok_embeddings.weight.data.copy_(pretrained_embedding_tensor)
+        
+        print("Initialized embedding layer with custom weights.")
+
+    def forward(self, tokens: torch.Tensor):
+        # Modified forward pass to use projection if necessary
+        if self.embedding_projection:
+            h = self.embedding_projection(self.tok_embeddings(tokens))
+        else:
+            h = self.tok_embeddings(tokens)
+
+        for layer in self.layers.values():
+            h = layer(h, self.freqs_cis)
+
+        h = self.norm(h) if self.norm else h
+        output = self.output(h).float() if self.output else h
+        return output
+
+    @classmethod
+    def from_model_args_and_embedding(cls, model_args: ModelArgs, pretrained_embedding: Optional[np.ndarray] = None) -> "TransformerWithPretraineddEmbedding":
+        return cls(model_args, pretrained_embedding)

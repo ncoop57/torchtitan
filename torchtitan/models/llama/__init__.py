@@ -7,9 +7,9 @@
 # Llama 2 is licensed under the LLAMA 2 Community License,
 # Copyright (c) Meta Platforms, Inc. All Rights Reserved.
 
-from torchtitan.models.llama.model import ModelArgs, Transformer
+from torchtitan.models.llama.model import ModelArgs, Transformer, TransformerWithPretrainedEmbedding
 
-__all__ = ["Transformer"]
+__all__ = ["Transformer", "TransformerWithPretrainedEmbedding"]
 
 llama2_configs = {
     "debugmodel": ModelArgs(dim=256, n_layers=8, n_heads=16),

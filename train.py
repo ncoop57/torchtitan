@@ -9,6 +9,8 @@ import os
 import time
 from datetime import timedelta
 
+import numpy as np
+
 import torch
 from torch.distributed.elastic.multiprocessing.errors import record
 from torch.fx import GraphModule
@@ -115,7 +117,12 @@ def main(job_config: JobConfig):
 
     logger.info(f"Building {model_name} {job_config.model.flavor} with {model_config}")
     with torch.device("meta"):
-        model = model_cls.from_model_args(model_config)
+        if model_name.endswith("_pretrained"):
+            model = model_cls.from_model_args_and_embedding(
+                model_config, pretrained_embedding=np.load(job_config.model.pretrained_embedding_path)
+            )
+        else:
+            model = model_cls.from_model_args(model_config)
 
     # a no-op hander if float8 is not enabled
     float8_handler = Float8Handler(job_config, parallel_dims)
