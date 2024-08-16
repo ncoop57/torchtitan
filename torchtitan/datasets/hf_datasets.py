@@ -30,6 +30,7 @@ from datasets.distributed import split_dataset_by_node
 _supported_datasets = {
     "c4_test": "test/assets/c4_test",
     "c4": "allenai/c4",
+    "tiny_programs": "answerdotai/tiny_programs",
 }
 
 
@@ -118,7 +119,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
 
         while True:
             for sample in self._get_data_iter():
-                sample_text = sample["text"]
+                sample_text = sample["code"]
                 sample_tokens = self._tokenizer.encode(sample_text, bos=True, eos=True)
                 self._all_tokens.extend(sample_tokens)
                 self._sample_idx += 1
