@@ -49,7 +49,7 @@ Once the above have been set, the final checkpoint at the end of the training st
 Finally, once you have obtained the last checkpoint, you can use the following command to convert the sharded checkpoints to a single .pt file that can be loaded into torchtune:
 
 ```
-python -m torch.distributed.checkpoint.format_utils dcp_to_torch torchtitan/outputs/checkpoint/step-1000 checkpoint.pt
+python -m torch.distributed.checkpoint.format_utils dcp_to_torch ./outputs/checkpoint/step-400 ./outputs/checkpoint/final_model.pt
 ```
 
 That's it. You have now successfully converted a sharded torchtitan checkpoint for use in torchtune.

@@ -30,7 +30,7 @@ from datasets.distributed import split_dataset_by_node
 _supported_datasets = {
     "c4_test": "test/assets/c4_test",
     "c4": "allenai/c4",
-    "tiny_programs": "answerdotai/tiny_programs",
+    "tiny_programs": "answerdotai/tiny_programs_haiku3",
 }
 
 

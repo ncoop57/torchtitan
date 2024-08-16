@@ -5,7 +5,7 @@ import torch
 
 model_name = "llama3"
 model_flavor = "debugmodel"
-ckpt_path = f"checkpoints/{model_name}/{model_flavor}/model.pt"
+ckpt_path = "./outputs/checkpoint/final_model.pt"
 tokenizer_path = "./test/assets/test_tiktoken.model"
 model_cls = model_name_to_cls[model_name]
 model_config = models_config[model_name][model_flavor]
@@ -19,6 +19,9 @@ print(model)
 print(model.generate("Hello, world!", tokenizer))
 
 # load model
-# model.load_state_dict(torch.load(ckpt_path))
+state_dict = torch.load(ckpt_path)
+model.load_state_dict(state_dict['model'], strict=False)
+print(model.generate("```python\nprint(", tokenizer, top_k=1))
 
+# print(model.generate("```python\nprint('Hello, ", tokenizer))
 
