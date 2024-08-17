@@ -21,20 +21,28 @@ def load_model(model_name, model_flavor, ckpt_path, tokenizer_path, pretrained_e
     else:
         model = model_cls.from_model_args(model_config)
 
-    state_dict = torch.load(ckpt_path)
+    state_dict = torch.load(ckpt_path)  
     model.load_state_dict(state_dict, strict=False)
+    model.to('cuda')
     return model, tokenizer
 
 def evaluate_model(model, tokenizer, dataset, batch_size=64):
     metric = Perplexity()
-    batched_dataset = dataset.batch(batch_size=batch_size)
-    for batch in batched_dataset:
-        input_ids = tokenizer.encode(batch['text'], bos=True, eos=True)
-        input_ids = torch.tensor(input_ids).to(model.device)
+    for text in dataset['text']:
+        # print(text)
+        input_ids = tokenizer.encode(text, bos=True, eos=True)
+        # print(input_ids)
+        input_ids = torch.tensor(input_ids).to('cuda')
+        # add batch dim
+        input_ids = input_ids.unsqueeze(0)
         with torch.no_grad():
-            output = model(input_ids)
+            logits = model(input_ids)
         labels = input_ids[:, 1:]
-        metric.update(output, labels)
+        # print devices
+        # print(output.device, labels.device)
+        # convert logits to logprobs
+        logprobs = torch.nn.functional.log_softmax(logits, dim=-1)
+        metric.update(logprobs[:, :-1].to('cpu'), labels.to('cpu'))
     
     ppl = metric.compute().item()
     print(f"Perplexity: {ppl}")
@@ -50,5 +58,5 @@ def main(
     dataset_split: str = 'train',
 ):
     model, tokenizer = load_model(model_name, model_flavor, ckpt_path, tokenizer_path, pretrained_embedding_path)
-    dataset = load_dataset(dataset_name, split=dataset_split)
+    dataset = load_dataset(dataset_name, 'wikitext-103-raw-v1', split=dataset_split).select(range(10_000))
     evaluate_model(model, tokenizer, dataset)
