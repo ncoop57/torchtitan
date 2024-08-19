@@ -9,3 +9,4 @@ tiktoken
 blobfile
 tabulate
 fastcore
+transformers

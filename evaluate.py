@@ -54,9 +54,9 @@ def main(
     ckpt_path: str,                     # path to the checkpoint
     tokenizer_path: str,                # path to the tokenizer
     pretrained_embedding_path: str,     # path to the pretrained embedding
-    dataset_name: str = 'Salesforce/wikitext',                  # name of the dataset [wikitext2, enwik8]
+    dataset_name: str = 'HuggingFaceTB/smollm-corpus',                  # name of the dataset [wikitext2, enwik8]
     dataset_split: str = 'train',
 ):
     model, tokenizer = load_model(model_name, model_flavor, ckpt_path, tokenizer_path, pretrained_embedding_path)
-    dataset = load_dataset(dataset_name, 'wikitext-103-raw-v1', split=dataset_split).select(range(10_000))
+    dataset = load_dataset(dataset_name, 'cosmopedia-v2', split=dataset_split).select(range(10_000))
     evaluate_model(model, tokenizer, dataset)

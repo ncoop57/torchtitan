@@ -32,9 +32,9 @@ lr = 5e-4
 [training]
 batch_size = 16
 seq_len = 512
-warmup_steps = 10_000  # lr scheduler warm up, normally 20% of the train steps
+warmup_steps = 1_000  # lr scheduler warm up, normally 20% of the train steps
 max_norm = 1.0  # grad norm clipping
-steps = 50_000
+steps = 5_000
 data_parallel_degree = -1
 tensor_parallel_degree = 1
 compile = false
@@ -54,7 +54,7 @@ export_dtype = "bfloat16"
 async_mode = "disabled"  # ["disabled", "async", "async_with_pinned_mem"]
 
 [activation_checkpoint]
-mode = 'selective'  # ['none', 'selective', 'full']
+mode = 'full'  # ['none', 'selective', 'full']
 selective_ac_option = '2'  # 'int' = ac every positive int layer or 'op', ac based on ops policy
 
 [float8]
